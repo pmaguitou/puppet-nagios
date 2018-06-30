@@ -1,6 +1,6 @@
 # enable nagiosgraph CGI scripts
-ScriptAlias /nagiosgraph/cgi-bin "/usr/libexec/nagiosgraph/cgi-bin"
-<Directory "/usr/libexec/nagiosgraph/cgi-bin">
+ScriptAlias /nagiosgraph/cgi-bin "/usr/lib/nagiosgraph/cgi-bin"
+<Directory "/usr/lib/nagiosgraph/cgi-bin">
    Options ExecCGI
    AllowOverride None
 <% if !@apache_allowed_from.empty? -%>
