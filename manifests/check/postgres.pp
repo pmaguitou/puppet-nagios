@@ -1,3 +1,5 @@
+# nagios::check::postgres
+# class
 class nagios::check::postgres (
   $args                     = undef,
   $check_period             = undef,

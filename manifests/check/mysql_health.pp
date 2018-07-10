@@ -1,3 +1,5 @@
+# nagios::check::mysql_health
+# class
 class nagios::check::mysql_health (
   $args                     = undef,
   $check_period             = undef,
