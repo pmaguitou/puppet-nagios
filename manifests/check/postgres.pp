@@ -103,7 +103,7 @@ class nagios::check::postgres (
 
   # Optional package containing the script
   if $pkg {
-    $pkgname = 'nagios-plugins-postgres'
+    $pkgname = 'check_postgres'
     $pkgensure = $ensure ? {
       'absent' => 'absent',
       default  => 'installed',
