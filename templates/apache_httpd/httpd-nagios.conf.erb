@@ -1,4 +1,4 @@
-ScriptAlias /nagios/cgi-bin/ /usr/<%= scope.lookupvar("nagios::params::libdir") %>/nagios/cgi-bin/
+ScriptAlias /nagios/cgi-bin /usr/<%= scope.lookupvar("nagios::params::libdir") %>/nagios/cgi-bin/
 <Directory /usr/<%= scope.lookupvar("nagios::params::libdir") %>/nagios/cgi-bin/>
    Options ExecCGI
 <% if !@apache_allowed_from.empty? -%>
@@ -15,7 +15,7 @@ ScriptAlias /nagios/cgi-bin/ /usr/<%= scope.lookupvar("nagios::params::libdir") 
    Require valid-user
 </Directory>
 
-Alias /nagios/ /usr/share/nagios/html/
+Alias /nagios /usr/share/nagios/html/
 <Directory /usr/share/nagios/html/>
    Options FollowSymlinks
 <% if !@apache_allowed_from.empty? -%>
