@@ -156,7 +156,7 @@ class nagios::client (
     if getvar('::nagios_httpd') {            class { '::nagios::check::httpd': } }
     if getvar('::nagios_pci_megaraid_sas') {
       class { '::nagios::check::megaraid_sas': }
-      class { '::nagios::check::ssd': }
+      #class { '::nagios::check::ssd': }
     }
     if getvar('::nagios_memcached') {        class { '::nagios::check::memcached': } }
     if getvar('::nagios_mongod') {           class { '::nagios::check::mongodb': } }
