@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 from nagioscheck import NagiosCheck, UsageError
 from nagioscheck import PerformanceMetric, Status
 import urllib2
@@ -22,7 +22,7 @@ class ESNodesCheck(NagiosCheck):
         self.add_option('P', 'port', 'port', 'The ES port - defaults to 9200')
 
     def check(self, opts, args):
-        host = opts.host
+        host = opts.host or 'localhost'
         port = int(opts.port or '9200')
         nodes_in_cluster = int(opts.nodes_in_cluster)
 

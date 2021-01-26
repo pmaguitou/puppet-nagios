@@ -36,6 +36,8 @@ class nagios::server (
   $cgi_authorized_for_all_host_commands         = 'nagiosadmin',
   $cgi_default_statusmap_layout                 = '5',
   $cgi_result_limit                             = '100',
+  # mail server installation is optionnal
+  $mailx_install                = true,
   # nagios.cfg
   $cfg_file = [
     # Where puppet managed types are
@@ -53,6 +55,7 @@ class nagios::server (
     '/etc/nagios/nagios_serviceescalation.cfg',
   ],
   $cfg_dir                        = [],
+  $cfg_template                   = $::nagios::params::cfg_template,
   $process_performance_data       = '0',
   $host_perfdata_command          = false,
   $service_perfdata_command       = false,
@@ -72,6 +75,7 @@ class nagios::server (
   $notification_timeout  = '30',
   $ocsp_timeout          = '5',
   $perfdata_timeout      = '5',
+  $enable_notifications  = '1',
   # private/resource.cfg for $USERx$ macros (from 1 to 32)
   $user = {
     '1' => $::nagios::params::plugin_dir,
@@ -89,10 +93,8 @@ class nagios::server (
   $plugin_nginx          = false,
   $plugin_xcache         = false,
   $plugin_slack          = false,
-  $plugin_slack_webhost  = undef,
-  $plugin_slack_channel  = '#alerts',
-  $plugin_slack_botname  = 'nagios',
-  $plugin_slack_webhook  = undef,
+  $plugin_slack_domain   = undef,
+  $plugin_slack_token    = undef,
   $plugin_redis          = false,
   $plugin_redis_sentinel = false,
   $selinux               = $::selinux,
@@ -169,9 +171,15 @@ class nagios::server (
     }
   }
   if $plugin_slack {
-    if ! $plugin_slack_webhost or ! $plugin_slack_webhook {
-      fail('$plugin_slack_webhost and $plugin_slack_webhook must be pass when $plugin_slack is enabled.')
+    if ! $plugin_slack_domain or ! $plugin_slack_token {
+      fail('$plugin_slack_domain and $plugin_slack_token must be pass when $plugin_slack is enabled.')
     }
+    ensure_packages(
+      [
+        'perl(LWP::Protocol::https)',
+        'perl(IO::Socket::SSL)',
+      ]
+    )
     file { "${plugin_dir}/slack_nagios":
       owner   => 'root',
       group   => 'root',
@@ -216,7 +224,9 @@ class nagios::server (
 
   # Other packages
   # For the default email notifications to work
-  ensure_packages(['mailx'])
+  if $mailx_install {
+    ensure_packages(['mailx'])
+  }
 
   service { 'nagios':
     ensure    => 'running',
@@ -267,7 +277,9 @@ class nagios::server (
 
   if $php {
     class { '::php::mod_php5': }
-    php::ini { '/etc/php.ini': }
+    php::ini { '/etc/php.ini':
+      date_timezone => 'Etc/UTC',
+    }
     if $php_apc { php::module { $php_apc_module: } }
   }
 
@@ -287,7 +299,7 @@ class nagios::server (
     owner   => 'root',
     group   => 'root',
     mode    => '0644',
-    content => template($::nagios::params::cfg_template),
+    content => template($cfg_template),
     notify  => Service['nagios'],
     require => Package['nagios'],
   }
@@ -556,6 +568,9 @@ class nagios::server (
   nagios_command { 'check_nrpe_couchbase':
     command_line => "${nrpe} -c check_couchbase",
   }
+  nagios_command { 'check_nrpe_couchbase_bucket':
+    command_line => "${nrpe} -c check_couchbase_bucket",
+  }
   nagios_command { 'check_nrpe_moxi':
     command_line => "${nrpe} -c check_moxi",
   }
@@ -791,8 +806,8 @@ class nagios::server (
   nagios_command { 'check_nrpe_zk_pending_syncs':
     command_line => "${nrpe} -c check_zk_pending_syncs",
   }
-  nagios_command { 'check_nrpe_zk_followers':
-    command_line => "${nrpe} -c check_zk_followers",
+  nagios_command { 'check_nrpe_zk_synced_followers':
+    command_line => "${nrpe} -c check_zk_synced_followers",
   }
   nagios_command { 'check_nrpe_mongodb_asserts':
     command_line => "${nrpe} -c check_mongodb_asserts",
@@ -980,6 +995,57 @@ class nagios::server (
   nagios_command { 'check_nrpe_ssd':
     command_line => "${nrpe} -c check_ssd",
   }
+  nagios_command { 'check_nrpe_tls_files':
+    command_line => "${nrpe} -c check_tls_files",
+  }
+  nagios_command { 'check_nrpe_kafka':
+    command_line => "${nrpe} -c check_kafka",
+  }
+  nagios_command { 'check_nrpe_kafka_isr':
+    command_line => "${nrpe} -c check_kafka_isr",
+  }
+  nagios_command { 'check_nrpe_clickhouse_replication_future_parts':
+    command_line => "${nrpe} -c check_clickhouse_replication_future_parts",
+  }
+  nagios_command { 'check_nrpe_clickhouse_replication_inserts_in_queue':
+    command_line => "${nrpe} -c check_clickhouse_replication_inserts_in_queue",
+  }
+  nagios_command { 'check_nrpe_clickhouse_replication_is_readonly':
+    command_line => "${nrpe} -c check_clickhouse_replication_is_readonly",
+  }
+  nagios_command { 'check_nrpe_clickhouse_replication_is_session_expired':
+    command_line => "${nrpe} -c check_clickhouse_replication_is_session_expired",
+  }
+  nagios_command { 'check_nrpe_clickhouse_replication_log_delay':
+    command_line => "${nrpe} -c check_clickhouse_replication_log_delay",
+  }
+  nagios_command { 'check_nrpe_clickhouse_replication_parts_to_check':
+    command_line => "${nrpe} -c check_clickhouse_replication_parts_to_check",
+  }
+  nagios_command { 'check_nrpe_clickhouse_replication_queue_size':
+    command_line => "${nrpe} -c check_clickhouse_replication_queue_size",
+  }
+  nagios_command { 'check_nrpe_clickhouse_replication_total_replicas':
+    command_line => "${nrpe} -c check_clickhouse_replication_total_replicas",
+  }
+  nagios_command { 'check_nrpe_clickhouse_replication_active_replicas':
+    command_line => "${nrpe} -c check_clickhouse_replication_active_replicas",
+  }
+  nagios_command { 'check_nrpe_http_chproxy':
+    command_line => "${nrpe} -c check_http_chproxy",
+  }
+  nagios_command { 'check_nrpe_haproxy_stats':
+    command_line => "${nrpe} -c check_haproxy_stats",
+  }
+  nagios_command { 'check_nrpe_consul':
+    command_line => "${nrpe} -c check_consul",
+  }
+
+  # Collect virtual resources from check_service
+  Nagios_command <<| tag == 'service' |>> {
+    notify  => Service['nagios'],
+    require => Package['nagios'],
+  }
 
   # Nagios contacts and contactgroups
   # Taken from contacts.cfg
@@ -1164,6 +1230,9 @@ class nagios::server (
   }
   nagios_servicegroup { 'zookeeper':
     alias => 'Zookeeper service checks',
+  }
+  nagios_servicegroup { 'clickhouse':
+    alias => 'ClickHouse service checks',
   }
 
   # With selinux, adjustements are needed for nagiosgraph

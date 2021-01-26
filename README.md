@@ -24,7 +24,7 @@ drawback is that overrides which were set from manifests possibly need to be
 moved to hieradata.
 
 When upgrading from version 1, if you see checks changing arguments or getting
-added or removed, look at the check's parameters and migrate your exsting
+added or removed, look at the check's parameters and migrate your existing
 overrides, typically :
 
 ```yaml
@@ -428,7 +428,7 @@ nagios::check::zookeeper::zk_avg_latency: '--warning=1 --critical=10'
 When `nagios::check::zookeeper::leader` is set to `true`, the following
 additional checks are enabled by default:
 * `zk_pending_syncs`
-* `zk_followers`
+* `zk_synced_followers`
 
 For more info please refer to the `check_zookeeper` nagios plugin
 documentation: https://github.com/andreisavu/zookeeper-monitoring
@@ -439,10 +439,8 @@ If you want to have your nagios notifications in Slack, enable the slack plugin
 by setting `$plugin_slack` parameter to `true`.
 
 Additional parameters:
-* `$plugin_slack_webhost` (mandatory): an IP or FQDN for the host you installed nagios web interface
-* `$plugin_slack_webhook` (mandatory): Slack Web Hook url (grab it from Integration page at Slack Web Hook setup instruction section)
-* `$plugin_slack_channel` (default: '#alerts'): the channel where the bot will post in
-* `$plugin_slack_botname` (default: 'nagios'): the bot name
+* `$plugin_slack_domain` (mandatory): your team's Slack domain
+* `$plugin_slack_token` (mandatory): the token from your Nagios services page
 
 Sample Slack contact and commands configuration:
 
@@ -457,10 +455,10 @@ Sample Slack contact and commands configuration:
     host_notification_commands    => 'notify-host-by-slack',
   }
   nagios_command { 'notify-service-by-slack':
-    command_line => '$USER1$/slack_nagios -h "$HOSTNAME$" -n "$SERVICEDISPLAYNAME$" -o "$SERVICEOUTPUT$" -s "$SERVICESTATE$" -t "$NOTIFICATIONTYPE$" > /tmp/slack.log 2>&1',
+    command_line => '$USER1$/slack_nagios -field slack_channel=#exads-monitoring-nagios -field HOSTALIAS="$HOSTNAME$" -field SERVICEDESC="$SERVICEDESC$" -field SERVICESTATE="$SERVICESTATE$" -field SERVICEOUTPUT="$SERVICEOUTPUT$" -field NOTIFICATIONTYPE="$NOTIFICATIONTYPE$"',
   }
   nagios_command { 'notify-host-by-slack':
-    command_line => '$USER1$/slack_nagios -h "$HOSTNAME$" -O "$HOSTOUTPUT$" -S "$HOSTSTATE$" -t "$NOTIFICATIONTYPE$" > /tmp/slack.log 2>&1',
+    command_line => '$USER1$/slack_nagios -field slack_channel=#exads-monitoring-nagios -field HOSTALIAS="$HOSTNAME$" -field HOSTSTATE="$HOSTSTATE$" -field HOSTOUTPUT="$HOSTOUTPUT$" -field NOTIFICATIONTYPE="$NOTIFICATIONTYPE$"',
   }
 ```
 
@@ -644,6 +642,82 @@ warning and critical values as needed :
 # Tweak some check values
 nagios::check::elasticsearch::args_jvm_usage: '-N 10.0.0.1 -C 90 -W 80'
 nagios::check::elasticsearch::args_nodes: '-E 5' # Expected nodes in cluester
+```
+
+## Kafka
+
+Kafka monitoring checks producing to and consuming from specific Kafka topic,
+which can be set from hiera:
+
+```yaml
+nagios::check::kafka::topic: 'nagios'
+```
+
+By default, random partition of the above topic is used on each run, but this
+behavior may be changed using `-p` parameter of the check script.
+
+```yaml
+nagios::check::kafka::args: '-p 1'
+```
+
+By default `localhost:9092` is used as a broker list, but it may be controlled:
+
+```yaml
+nagios::check::kafka::brokers:
+  - '1.1.1.1:9093'
+  - '1.1.1.2:9093'
+```
+
+There is also ISR Kafka check, which stands for 'In-Sync Replicas'. It checks
+for under-replicated partitions.
+
+The accepted parameters are address or host of the zookeeper server and
+zookeeper chroot:
+
+```yaml
+nagios::check::kafka_isr::zookeeper_ipaddr:
+  - '1.1.1.1'
+  - '1.1.1.2'
+nagios::check::kafka_isr::zookeeper_chroot: 'my-cluster'
+```
+
+## HAProxy-stats
+
+HAProxy-stats check the state of Frontend, Servers and Backend.
+
+If you need more options just change the args as documented in the plugin page:
+```puppet
+  nagios::check::haproxy_stats::args: '-s /var/lib/haproxy/stats -P statistics -m'
+
+```
+https://github.com/tatref/nagios-scripts/
+
+## Consul
+
+Consul check which connects to Consul health API in order to gather node's
+state.
+
+The default data center to check is '', but it may be controlled via
+hiera:
+
+```yaml
+nagios::check::consul::datacenter: 'ovh'
+```
+
+If using ACLs, also consider passing the token with read permissions on node
+level:
+
+```yaml
+nagios::check::consul::token: 'foo'
+```
+
+## Services
+Check status of system services for Linux, FreeBSD, OSX, and AIX.
+
+Add the following on the client manifest:
+
+```puppet
+   nagios::check::service { 'foo_service': }
 ```
 
 ## Custom (NRPE) services / NRPE files / NRPE plugins
