@@ -88,7 +88,7 @@ class nagios::client (
     group   => $nrpe_group,
     mode    => '0640',
     content => template('nagios/nrpe.cfg.erb'),
-    require => Package['nrpe']
+    require => Package['nrpe'],
   }
   # Included in the package, but we need to enable purging
   file { $nrpe_cfg_dir:
