@@ -51,27 +51,29 @@ class nagios::params {
       $nrpe_user          = 'nrpe'
       $nrpe_group         = 'nrpe'
       if ( $::operatingsystem != 'Fedora' and versioncmp($::operatingsystemrelease, '7') >= 0 ) {
-        $nrpe_pid_file    = lookup('nagios::params::nrpe_pid_file', undef, undef, '/run/nrpe/nrpe.pid')
+        $nrpe_pid_file    = lookup('nagios::params::nrpe_pid_file',undef,undef,'/run/nrpe/nrpe.pid')
         $cfg_template     = 'nagios/nagios-4.cfg.erb'
 } else {
-        $nrpe_pid_file    = lookup('nagios::params::nrpe_pid_file', undef, undef, '/var/run/nrpe/nrpe.pid')
+        $nrpe_pid_file    = lookup('nagios::params::nrpe_pid_file',undef,undef,'/var/run/nrpe/nrpe.pid')
         $cfg_template     = 'nagios/nagios.cfg.erb'
       }
-      $nrpe_cfg_dir       = lookup('nagios::params::nrpe_cfg_dir', undef, undef, '/etc/nrpe.d')
-      $plugin_dir         = lookup('nagios::params::plugin_dir', undef, undef, "/usr/${libdir}/nagios/plugins")
-      $pid_file           = lookup('nagios::params::pid_file', undef, undef, '/var/run/nagios/nagios.pid')
+      $nrpe_cfg_dir       = lookup('nagios::params::nrpe_cfg_dir',undef,undef,'/etc/nrpe.d')
+      $plugin_dir         = lookup('nagios::params::plugin_dir',undef,undef,"/usr/${libdir}/nagios/plugins")
+      $pid_file           = lookup('nagios::params::pid_file',undef,undef,'/var/run/nagios/nagios.pid')
       $megaclibin         = '/usr/sbin/MegaCli'
       $perl_memcached     = 'perl-Cache-Memcached'
       case versioncmp($::operatingsystemmajrelease, '8') {
         0: {
-          $python_openssl           = 'python3-pyOpenSSL'
-          $python_mongo             = 'python2-pymongo'
+          $python_openssl            = 'python3-pyOpenSSL'
+          $python_mongo              = 'python2-pymongo'
           $python_2_vs_3_interpreter = '/usr/libexec/platform-python'
+          $python_request            = 'python2-requests'
         }
         default: {
           $python_openssl            = 'pyOpenSSL'
           $python_mongo              = 'python-pymongo'
           $python_2_vs_3_interpreter = '/usr/bin/python2'
+          $python_request            = 'python-requests'
         }
       }
       @package { $nagios_plugins_packages:
@@ -102,18 +104,18 @@ class nagios::params {
       }
     }
     'Debian', 'Ubuntu': {
-      $nrpe_package       = [ 'nagios-nrpe-server' ]
-      $nrpe_package_alias = 'nrpe'
-      $nrpe_service       = 'nagios-nrpe-server'
-      $nrpe_user          = 'nagios'
-      $nrpe_group         = 'nagios'
-      $nrpe_pid_file      = lookup('nagios::params::nrpe_pid_file', undef, undef, '/var/run/nagios/nrpe.pid')
-      $cfg_template       = 'nagios/nagios.cfg.erb'
-      $nrpe_cfg_dir       = lookup('nagios::params::nrpe_cfg_dir', undef, undef, '/etc/nagios/nrpe.d')
-      $plugin_dir         = lookup('nagios::params::plugin_dir', undef, undef, '/usr/lib/nagios/plugins')
-      $pid_file           = lookup('nagios::params::pid_file', undef, undef, '/var/run/nagios/nagios.pid')
-      $megaclibin         = '/opt/bin/MegaCli'
-      $perl_memcached     = 'libcache-memcached-perl'
+      $nrpe_package              = [ 'nagios-nrpe-server' ]
+      $nrpe_package_alias        = 'nrpe'
+      $nrpe_service              = 'nagios-nrpe-server'
+      $nrpe_user                 = 'nagios'
+      $nrpe_group                = 'nagios'
+      $nrpe_pid_file             = lookup('nagios::params::nrpe_pid_file',undef,undef,'/var/run/nagios/nrpe.pid')
+      $cfg_template              = 'nagios/nagios.cfg.erb'
+      $nrpe_cfg_dir              = lookup('nagios::params::nrpe_cfg_dir',undef,undef,'/etc/nagios/nrpe.d')
+      $plugin_dir                = lookup('nagios::params::plugin_dir',undef,undef,'/usr/lib/nagios/plugins')
+      $pid_file                  = lookup('nagios::params::pid_file',undef,undef,'/var/run/nagios/nagios.pid')
+      $megaclibin                = '/opt/bin/MegaCli'
+      $perl_memcached            = 'libcache-memcached-perl'
       $python_openssl            = 'pyOpenSSL'
       $python_mongo              = 'python-pymongo'
       $python_2_vs_3_interpreter = '/usr/bin/python2'
@@ -124,18 +126,18 @@ class nagios::params {
       }
     }
     default: {
-      $nrpe_package       = [ 'nrpe', 'nagios-plugins' ]
-      $nrpe_package_alias = undef
-      $nrpe_service       = 'nrpe'
-      $nrpe_user          = 'nrpe'
-      $nrpe_group         = 'nrpe'
-      $nrpe_pid_file      = lookup('nagios::params::nrpe_pid_file', undef, undef, '/var/run/nrpe.pid')
-      $cfg_template       = 'nagios/nagios.cfg.erb'
-      $nrpe_cfg_dir       = lookup('nagios::params::nrpe_cfg_dir', undef, undef, '/etc/nagios/nrpe.d')
-      $plugin_dir         = lookup('nagios::params::plugin_dir', undef, undef, '/usr/libexec/nagios/plugins')
-      $pid_file           = lookup('nagios::params::pid_file', undef, undef, '/var/run/nagios.pid')
-      $megaclibin         = lookup('nagios::params::megaclibin', undef, undef, '/usr/sbin/MegaCli')
-      $perl_memcached     = lookup('nagios::params::perl_memcached', undef, undef, 'perl-Cache-Memcached')
+      $nrpe_package              = [ 'nrpe', 'nagios-plugins' ]
+      $nrpe_package_alias        = undef
+      $nrpe_service              = 'nrpe'
+      $nrpe_user                 = 'nrpe'
+      $nrpe_group                = 'nrpe'
+      $nrpe_pid_file             = lookup('nagios::params::nrpe_pid_file',undef,undef,'/var/run/nrpe.pid')
+      $cfg_template              = 'nagios/nagios.cfg.erb'
+      $nrpe_cfg_dir              = lookup('nagios::params::nrpe_cfg_dir',undef,undef,'/etc/nagios/nrpe.d')
+      $plugin_dir                = lookup('nagios::params::plugin_dir',undef,undef,'/usr/libexec/nagios/plugins')
+      $pid_file                  = lookup('nagios::params::pid_file',undef,undef,'/var/run/nagios.pid')
+      $megaclibin                = lookup('nagios::params::megaclibin',undef,undef,'/usr/sbin/MegaCli')
+      $perl_memcached            = lookup('nagios::params::perl_memcached',undef,undef,'perl-Cache-Memcached')
       $python_openssl            = 'pyOpenSSL'
       $python_mongo              = 'python-pymongo'
       $python_2_vs_3_interpreter = '/usr/bin/python2'

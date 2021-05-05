@@ -4,16 +4,16 @@
 
 define nagios::check (
   $executable,
-#  $parameters          = lookup("nagios::check::${title}::parameters", undef, undef, undef),
+#  $parameters          = lookup("nagios::check::${title}::parameters"),
   $description         = lookup("nagios::check::${title}::description", undef, undef, $title),
   $nrpe_options        = lookup("nagios::check::${title}::nrpe_options", undef, undef, '-t 15'),
   $ensure              = lookup("nagios::check::${title}::ensure", undef, undef, 'present'),
 #  $servicegroups       = lookup("nagios::check::${title}::description", undef, undef, []),
-  $check_period        = lookup("nagios::check::${title}::check_period", undef, undef, undef),
-  $contact_groups      = lookup("nagios::check::${title}::contact_groups", undef, undef, undef),
-  $max_check_attempts  = lookup("nagios::check::${title}::max_check_attempts", undef, undef, undef),
-  $notification_period = lookup("nagios::check::${title}::notification_period", undef, undef, undef),
-  $use                 = lookup("nagios::check::${title}::use", undef, undef, undef),
+  $check_period        = lookup("nagios::check::${title}::check_period"),
+  $contact_groups      = lookup("nagios::check::${title}::contact_groups"),
+  $max_check_attempts  = lookup("nagios::check::${title}::max_check_attempts"),
+  $notification_period = lookup("nagios::check::${title}::notification_period"),
+  $use                 = lookup("nagios::check::${title}::use"),
 ) {
 
   # We need to take default values from the nagios::client config

@@ -1,24 +1,16 @@
-class nagios::check::rabbitmq (
-  $ensure                       = undef,
-  $package                      = $::nagios::params::python_request,
+class nagios::check::syncthing (
+  $ensure                   = undef,
+  $package                  = 'python-requests',
   # common args for all modes 'as-is' for the check script
-  $args                         = '',
+  $args                     = '',
   # common args for all modes as individual parameters
-  $user                         = undef,
-  $pass                         = undef,
-  $nodename                     = undef,
-  $virtualhost                  = undef,
+  $api_key                  = undef,
   # modes selectively enabled and/or disabled
-  $modes_enabled                = [],
-  $modes_disabled               = [],
-  $args_connection_count        = '',
-  $args_queues_count            = '',
-  $args_mem_usage               = '',
-  $args_aliveness               = '',
-  $args_cluster_status          = '',
+  $modes_enabled            = [],
+  $modes_disabled           = [],
   # service
   $check_title              = $::nagios::client::host_name,
-  $servicegroups            = 'rabbitmq',
+  $servicegroups            = 'syncthing',
   $check_period             = $::nagios::client::service_check_period,
   $contact_groups           = $::nagios::client::service_contact_groups,
   $first_notification_delay = $::nagios::client::service_first_notification_delay,
@@ -27,43 +19,27 @@ class nagios::check::rabbitmq (
   $use                      = $::nagios::client::service_use,
 ) {
 
-  nagios::client::nrpe_plugin { 'check_rabbitmq':
+  nagios::client::nrpe_plugin { 'check_syncthing':
     ensure  => $ensure,
     package => $package,
   }
 
   # Set options from parameters unless already set inside args
-  if $args !~ /-u/ and $user != undef {
-    $arg_u = "-u ${user} "
+  if $args !~ /-X/ and $api_key != undef {
+    $arg_x = "-X ${api_key} "
   } else {
-    $arg_u = ''
+    $arg_x = ''
   }
-  if $args !~ /-p/ and $pass != undef {
-    $arg_p = "-p ${pass} "
-  } else {
-    $arg_p = ''
-  }
-  if $args !~ /-n/ and $nodename != undef {
-    $arg_d = "-n ${nodename} "
-  } else {
-    $nodename_f = getvar('::nagios_rabbitmq_nodename')
-    $arg_d = "-n ${nodename_f}"
-  }
-  if $args !~ /-v/ and $virtualhost != undef {
-    $arg_c = "-v ${virtualhost} "
-  } else {
-    $arg_c = ''
-  }
-  $globalargs = strip("${arg_u}${arg_p}${arg_d}${arg_c}${args}")
+
+  $globalargs = strip("-H localhost ${arg_x}${args}")
 
   $modes = [
-    'connection_count',
-    'queues_count',
-    'mem_usage',
-    'aliveness',
-    'cluster_status',
+    'alive',
+    'devices',
+    'folders_status',
+    'last_scans',
   ]
-  nagios::check::rabbitmq::mode { $modes:
+  nagios::check::syncthing::mode { $modes:
     ensure                   => $ensure,
     globalargs               => $globalargs,
     modes_enabled            => $modes_enabled,
