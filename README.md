@@ -830,4 +830,3 @@ service nagios reload|restart
 
 See [Issue #21](https://github.com/thias/puppet-nagios/issues/21) on why the
 service restart is required.
-
